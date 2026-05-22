@@ -27,12 +27,6 @@ struct ProfileEditorView: View {
                             .monospaced()
                     }
                 }
-                Picker("Menu bar shows", selection: $draft.menuBarMetric) {
-                    ForEach(MenuBarMetric.allCases) { m in
-                        Text(m.label).tag(m)
-                    }
-                }
-                .pickerStyle(.segmented)
             }
             .formStyle(.grouped)
 

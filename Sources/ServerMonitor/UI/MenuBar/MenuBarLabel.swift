@@ -1,75 +1,80 @@
 import SwiftUI
+import AppKit
 
 struct MenuBarLabel: View {
     let state: AppState
 
     var body: some View {
-        if let profile = state.activeProfile {
+        if let profile = sourceProfile {
             let snapshot = state.snapshots[profile.id]
-            HStack(spacing: 4) {
-                Image(systemName: profile.iconSymbol)
-                Text(displayText(profile: profile, snapshot: snapshot))
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-            }
-        } else if !state.profiles.isEmpty {
-            overviewLabel
+            Image(nsImage: renderBars(snapshot: snapshot))
         } else {
             Image(systemName: "server.rack")
         }
     }
 
-    private func displayText(profile: Profile, snapshot: MetricsSnapshot?) -> String {
-        guard let snapshot, snapshot.reachable else { return "—" }
-        switch profile.menuBarMetric {
-        case .cpu:
-            return "CPU \(Int(snapshot.cpu.utilizationPct))%"
-        case .memory:
-            return "MEM \(Int(snapshot.memory.utilizationPct))%"
-        case .gpu:
-            guard let top = snapshot.gpus.max(by: { $0.utilizationPct < $1.utilizationPct }) else {
-                return "GPU —"
-            }
-            return "GPU\(top.index) \(Int(top.utilizationPct))%"
-        }
+    /// Source for the bars: the active profile if any, otherwise the first
+    /// configured profile. Returns nil only when no profiles are configured.
+    private var sourceProfile: Profile? {
+        state.activeProfile ?? state.profiles.first
     }
 
-    @ViewBuilder
-    private var overviewLabel: some View {
-        let summary = FleetSummary.from(profiles: state.profiles, snapshots: state.snapshots)
-        let down = summary.total - summary.reachable
-        if down > 0 && summary.reachable == 0 {
-            HStack(spacing: 4) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                Text("\(down)/\(summary.total) down")
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-            }
-        } else if let worst = worstStat(summary) {
-            HStack(spacing: 4) {
-                Image(systemName: "square.grid.2x2")
-                Text(worst)
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-                if down > 0 {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Palette.warn)
-                }
-            }
-        } else {
-            HStack(spacing: 4) {
-                Image(systemName: "square.grid.2x2")
-                Text("—")
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-            }
+    @MainActor
+    private func renderBars(snapshot: MetricsSnapshot?) -> NSImage {
+        let view = GPUBarsView(
+            gpu0: gpuPct(snapshot: snapshot, index: 0),
+            gpu1: gpuPct(snapshot: snapshot, index: 1)
+        )
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        let size = NSSize(width: GPUBarsView.totalWidth, height: GPUBarsView.totalHeight)
+        guard let cg = renderer.cgImage else {
+            return NSImage(size: size)
         }
+        let img = NSImage(cgImage: cg, size: size)
+        img.isTemplate = false
+        return img
     }
 
-    private func worstStat(_ s: FleetSummary) -> String? {
-        // Pick the metric with the highest percentage; prefix with the offending profile's initial.
-        var candidates: [(String, Double, Profile)] = []
-        if let c = s.cpuMax { candidates.append(("CPU", c.pct, c.profile)) }
-        if let m = s.memMax { candidates.append(("MEM", m.pct, m.profile)) }
-        if let g = s.gpuMax { candidates.append(("GPU", g.pct, g.profile)) }
-        guard let top = candidates.max(by: { $0.1 < $1.1 }) else { return nil }
-        let initial = top.2.name.first.map(String.init)?.uppercased() ?? "?"
-        return "\(initial)·\(top.0) \(Int(top.1))%"
+    private func gpuPct(snapshot: MetricsSnapshot?, index: Int) -> Double? {
+        guard let snapshot, snapshot.reachable else { return nil }
+        return snapshot.gpus.first(where: { $0.index == index })?.utilizationPct
+    }
+}
+
+private struct GPUBarsView: View {
+    let gpu0: Double?
+    let gpu1: Double?
+
+    static let barWidth: CGFloat = 9
+    static let barHeight: CGFloat = 20
+    static let gap: CGFloat = 3
+    static let totalWidth: CGFloat = barWidth * 2 + gap
+    static let totalHeight: CGFloat = barHeight
+
+    var body: some View {
+        HStack(spacing: Self.gap) {
+            Bar(value: gpu0)
+            Bar(value: gpu1)
+        }
+        .frame(width: Self.totalWidth, height: Self.totalHeight)
+    }
+}
+
+private struct Bar: View {
+    let value: Double?
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: 2, style: .continuous)
+                .fill(Color.white.opacity(0.22))
+                .frame(width: GPUBarsView.barWidth, height: GPUBarsView.barHeight)
+            if let v = value {
+                let h = max(0, min(1, v / 100)) * GPUBarsView.barHeight
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(Palette.threshold(v))
+                    .frame(width: GPUBarsView.barWidth, height: h)
+            }
+        }
     }
 }

@@ -242,9 +242,20 @@ struct OverviewRow: View {
     }
 
     private func uniqueModelName(in gpus: [GPUStats]) -> String {
-        let names = Set(gpus.map(\.name))
+        let names = Set(gpus.map { shortGPUName($0.name) })
         if names.count == 1, let n = names.first { return n }
         return "GPUs"
+    }
+
+    private func shortGPUName(_ name: String) -> String {
+        var s = name
+        for prefix in ["NVIDIA GeForce ", "NVIDIA Geforce ", "NVIDIA "] {
+            if s.hasPrefix(prefix) {
+                s.removeFirst(prefix.count)
+                break
+            }
+        }
+        return s
     }
 
     private var hasHistory: Bool {
