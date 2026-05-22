@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 
+@MainActor
 struct MenuBarLabel: View {
     let state: AppState
 

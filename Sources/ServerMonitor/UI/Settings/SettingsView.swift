@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct SettingsView: View {
     @Bindable var state: AppState
     @State private var selectedID: UUID?

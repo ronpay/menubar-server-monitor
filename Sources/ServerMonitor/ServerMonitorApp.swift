@@ -1,6 +1,7 @@
 import SwiftUI
 
 @main
+@MainActor
 struct ServerMonitorApp: App {
     @State private var state = AppState.shared
     @Environment(\.openWindow) private var openWindow

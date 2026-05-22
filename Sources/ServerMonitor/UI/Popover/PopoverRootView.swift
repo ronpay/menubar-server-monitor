@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct PopoverRootView: View {
     @Bindable var state: AppState
     let openSettings: () -> Void
