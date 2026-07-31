@@ -28,14 +28,14 @@ struct PopoverRootView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 6) {
+        HStack(alignment: .top, spacing: 6) {
             ProfileTabBar(
                 profiles: state.profiles,
                 activeID: state.activeProfileID,
                 showOverview: !state.profiles.isEmpty,
                 onSelect: { state.activeProfileID = $0 }
             )
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity, alignment: .leading)
             Button {
                 openSettings()
             } label: {
@@ -88,7 +88,7 @@ struct PopoverRootView: View {
         let n = state.profiles.count
         let reachable = state.profiles.filter { state.snapshots[$0.id]?.reachable == true }.count
         let intervals = state.profiles.map(\.pollIntervalSec)
-        let minInterval = intervals.min() ?? 5
+        let minInterval = intervals.min() ?? Profile.defaultPollIntervalSec
         return "overview · \(reachable)/\(n) reachable · poll \(minInterval)s"
     }
 

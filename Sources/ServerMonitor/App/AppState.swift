@@ -8,6 +8,7 @@ final class AppState {
 
     private static let profilesKey = "ServerMonitor.profiles.v1"
     private static let activeIDKey = "ServerMonitor.activeProfileID.v1"
+    private static let intervalMigrationKey = "ServerMonitor.pollIntervalDefault30.v1"
 
     var profiles: [Profile] = [] {
         didSet { persistProfiles() }
@@ -25,6 +26,7 @@ final class AppState {
 
     init() {
         loadProfiles()
+        migrateDefaultPollInterval()
         if let raw = UserDefaults.standard.string(forKey: Self.activeIDKey),
            let uuid = UUID(uuidString: raw),
            profiles.contains(where: { $0.id == uuid }) {
@@ -56,6 +58,24 @@ final class AppState {
         if oldInterval != profile.pollIntervalSec || oldHost != profile.sshHost {
             startPolling(profile.id)
         }
+    }
+
+    /// Reorders the server list. The order drives the settings sidebar, the
+    /// popover tabs, the overview rows and which servers reach the menu bar
+    /// dot matrix, so moving a server here moves it everywhere.
+    func moveProfiles(fromOffsets source: IndexSet, toOffset destination: Int) {
+        profiles.move(fromOffsets: source, toOffset: destination)
+    }
+
+    /// Moves one server up (`delta < 0`) or down (`delta > 0`) by `delta` slots,
+    /// clamped to the ends of the list.
+    func moveProfile(id: UUID, by delta: Int) {
+        guard delta != 0, let index = profiles.firstIndex(where: { $0.id == id }) else { return }
+        let target = index + delta
+        guard profiles.indices.contains(target) else { return }
+        // `move(fromOffsets:toOffset:)` inserts *before* the destination index,
+        // which is one past the target slot when moving down.
+        profiles.move(fromOffsets: IndexSet(integer: index), toOffset: delta < 0 ? target : target + 1)
     }
 
     func removeProfile(id: UUID) {
@@ -113,6 +133,18 @@ final class AppState {
             return
         }
         profiles = decoded
+    }
+
+    /// One-time bump of the poll interval default from 5s to 30s. Only servers
+    /// still on the old default are touched — a hand-picked interval stays.
+    private func migrateDefaultPollInterval() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: Self.intervalMigrationKey) else { return }
+        defaults.set(true, forKey: Self.intervalMigrationKey)
+        for index in profiles.indices
+        where profiles[index].pollIntervalSec == Profile.legacyDefaultPollIntervalSec {
+            profiles[index].pollIntervalSec = Profile.defaultPollIntervalSec
+        }
     }
 
     private func persistProfiles() {

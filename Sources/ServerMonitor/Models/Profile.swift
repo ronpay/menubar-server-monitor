@@ -13,6 +13,14 @@ enum MenuBarMetric: String, Codable, CaseIterable, Identifiable, Sendable {
 }
 
 struct Profile: Codable, Identifiable, Hashable, Sendable {
+    static let defaultPollIntervalSec = 30
+    static let minPollIntervalSec = 1
+    static let maxPollIntervalSec = 3600
+    /// The default this app originally shipped with. Profiles still sitting on
+    /// it have never been tuned by hand, so they get migrated to the current
+    /// default; see `AppState.migrateDefaultPollInterval`.
+    static let legacyDefaultPollIntervalSec = 5
+
     var id: UUID
     var name: String
     var sshHost: String
@@ -24,15 +32,19 @@ struct Profile: Codable, Identifiable, Hashable, Sendable {
         id: UUID = UUID(),
         name: String,
         sshHost: String,
-        pollIntervalSec: Int = 5,
+        pollIntervalSec: Int = Profile.defaultPollIntervalSec,
         iconSymbol: String = "server.rack",
         menuBarMetric: MenuBarMetric = .gpu
     ) {
         self.id = id
         self.name = name
         self.sshHost = sshHost
-        self.pollIntervalSec = max(1, pollIntervalSec)
+        self.pollIntervalSec = Profile.clampPollInterval(pollIntervalSec)
         self.iconSymbol = iconSymbol
         self.menuBarMetric = menuBarMetric
+    }
+
+    static func clampPollInterval(_ value: Int) -> Int {
+        min(max(value, minPollIntervalSec), maxPollIntervalSec)
     }
 }

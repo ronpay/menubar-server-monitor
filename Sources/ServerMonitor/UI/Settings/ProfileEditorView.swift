@@ -18,15 +18,7 @@ struct ProfileEditorView: View {
             Form {
                 TextField("Name", text: $draft.name, prompt: Text("Codex"))
                 hostField
-                Stepper(value: $draft.pollIntervalSec, in: 1...60) {
-                    HStack {
-                        Text("Poll interval")
-                        Spacer()
-                        Text("\(draft.pollIntervalSec) s")
-                            .foregroundStyle(.secondary)
-                            .monospaced()
-                    }
-                }
+                pollIntervalField
             }
             .formStyle(.grouped)
 
@@ -53,6 +45,32 @@ struct ProfileEditorView: View {
                 .keyboardShortcut(.defaultAction)
                 .disabled(draft.sshHost.trimmingCharacters(in: .whitespaces).isEmpty)
             }
+        }
+    }
+
+    private var pollIntervalField: some View {
+        LabeledContent {
+            VStack(alignment: .trailing, spacing: 2) {
+                HStack(spacing: 6) {
+                    TextField(
+                        "Poll interval",
+                        value: $draft.pollIntervalSec,
+                        format: .number.grouping(.never)
+                    )
+                    .labelsHidden()
+                    .textFieldStyle(.roundedBorder)
+                    .multilineTextAlignment(.trailing)
+                    .monospaced()
+                    .frame(width: 70)
+                    .onSubmit { draft.pollIntervalSec = Profile.clampPollInterval(draft.pollIntervalSec) }
+                    Text("s").foregroundStyle(.secondary)
+                }
+                Text("\(Profile.minPollIntervalSec)–\(Profile.maxPollIntervalSec) seconds")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+        } label: {
+            Text("Poll interval")
         }
     }
 

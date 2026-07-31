@@ -31,6 +31,9 @@ struct SettingsView: View {
                     }
                     .tag(profile.id as UUID?)
                 }
+                .onMove { source, destination in
+                    state.moveProfiles(fromOffsets: source, toOffset: destination)
+                }
             }
             .onChange(of: selectedID) { _, new in
                 if let new, let p = state.profiles.first(where: { $0.id == new }) {
@@ -40,13 +43,14 @@ struct SettingsView: View {
             }
 
             Divider()
-            HStack {
+            HStack(spacing: 2) {
                 Button {
                     startAdding()
                 } label: {
                     Image(systemName: "plus")
                 }
                 .buttonStyle(.borderless)
+                .help("Add server")
                 Button {
                     if let id = selectedID {
                         state.removeProfile(id: id)
@@ -62,7 +66,31 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.borderless)
                 .disabled(selectedID == nil)
+                .help("Remove server")
+
+                Divider().frame(height: 14).padding(.horizontal, 4)
+
+                Button {
+                    if let id = selectedID { state.moveProfile(id: id, by: -1) }
+                } label: {
+                    Image(systemName: "chevron.up")
+                }
+                .buttonStyle(.borderless)
+                .disabled(!canMoveSelected(by: -1))
+                .help("Move up")
+                Button {
+                    if let id = selectedID { state.moveProfile(id: id, by: 1) }
+                } label: {
+                    Image(systemName: "chevron.down")
+                }
+                .buttonStyle(.borderless)
+                .disabled(!canMoveSelected(by: 1))
+                .help("Move down")
+
                 Spacer()
+                Text("drag to reorder")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
             .padding(6)
         }
@@ -95,6 +123,12 @@ struct SettingsView: View {
         }
     }
 
+    private func canMoveSelected(by delta: Int) -> Bool {
+        guard let id = selectedID,
+              let index = state.profiles.firstIndex(where: { $0.id == id }) else { return false }
+        return state.profiles.indices.contains(index + delta)
+    }
+
     private func startAdding() {
         draft = Profile(name: "", sshHost: "")
         selectedID = nil
@@ -108,6 +142,7 @@ struct SettingsView: View {
         var toSave = draft
         toSave.name = trimmed.isEmpty ? host : trimmed
         toSave.sshHost = host
+        toSave.pollIntervalSec = Profile.clampPollInterval(toSave.pollIntervalSec)
         if isEditingNew {
             state.addProfile(toSave)
             selectedID = toSave.id
