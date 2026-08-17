@@ -17,6 +17,7 @@ struct ServerMonitorApp: App {
         MenuBarExtra {
             PopoverRootView(state: state, openSettings: showSettings)
                 .frame(width: 380)
+                .menuBarWindowAutoSize()
         } label: {
             MenuBarLabel(state: state)
         }
