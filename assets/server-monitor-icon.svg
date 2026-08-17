@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
+  <title id="title">Server Monitor app icon</title>
+  <desc id="description">A three-unit server rack with colorful status lights and a live utilization pulse.</desc>
+
+  <defs>
+    <linearGradient id="background" x1="180" y1="112" x2="844" y2="920" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#292E49"/>
+      <stop offset="0.55" stop-color="#1F2335"/>
+      <stop offset="1" stop-color="#161722"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="216" y1="154" x2="808" y2="870" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7AA2F7" stop-opacity="0.72"/>
+      <stop offset="0.5" stop-color="#BB9AF7" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#7AA2F7" stop-opacity="0.04"/>
+    </linearGradient>
+    <linearGradient id="rackFace" x1="512" y1="273" x2="512" y2="751" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B4261"/>
+      <stop offset="1" stop-color="#24283B"/>
+    </linearGradient>
+    <linearGradient id="rackTop" x1="512" y1="252" x2="512" y2="350" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C0CAF5" stop-opacity="0.27"/>
+      <stop offset="1" stop-color="#7AA2F7" stop-opacity="0.04"/>
+    </linearGradient>
+    <linearGradient id="pulse" x1="296" y1="0" x2="744" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7AA2F7"/>
+      <stop offset="0.52" stop-color="#BB9AF7"/>
+      <stop offset="1" stop-color="#9ECE6A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(512 520) rotate(90) scale(400)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7AA2F7" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#7AA2F7" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="tileClip">
+      <rect x="64" y="64" width="896" height="896" rx="208"/>
+    </clipPath>
+  </defs>
+
+  <!-- A slightly inset macOS-style tile leaves a clean transparent silhouette. -->
+  <g clip-path="url(#tileClip)">
+    <rect x="64" y="64" width="896" height="896" fill="url(#background)"/>
+    <circle cx="512" cy="520" r="400" fill="url(#glow)"/>
+    <path d="M104 272C259 119 486 78 705 128C821 154 907 213 960 288V64H64V321C77 304 90 287 104 272Z" fill="#C0CAF5" opacity="0.035"/>
+    <path d="M131 798C333 910 645 933 888 762V960H64V746C84 765 107 782 131 798Z" fill="#000" opacity="0.12"/>
+  </g>
+  <rect x="68" y="68" width="888" height="888" rx="204" fill="none" stroke="url(#edge)" stroke-width="8"/>
+
+  <!-- Enlarged foreground mark; the outer tile remains unchanged. -->
+  <g transform="translate(512 512) scale(1.16) translate(-512 -512)">
+  <!-- Rack chassis -->
+  <rect x="238" y="244" width="548" height="536" rx="70" fill="#11131D" opacity="0.72"/>
+  <rect x="252" y="258" width="520" height="508" rx="58" fill="url(#rackFace)" stroke="#7AA2F7" stroke-opacity="0.28" stroke-width="8"/>
+  <path d="M310 262H714C745 262 768 285 768 316V346H256V316C256 285 279 262 310 262Z" fill="url(#rackTop)"/>
+
+  <!-- Three rack units -->
+  <rect x="292" y="318" width="440" height="116" rx="28" fill="#161824" stroke="#C0CAF5" stroke-opacity="0.22" stroke-width="6"/>
+  <rect x="292" y="454" width="440" height="116" rx="28" fill="#161824" stroke="#C0CAF5" stroke-opacity="0.22" stroke-width="6"/>
+  <rect x="292" y="590" width="440" height="116" rx="28" fill="#161824" stroke="#C0CAF5" stroke-opacity="0.22" stroke-width="6"/>
+
+  <!-- Subtle vents keep the server motif legible without adding noise. -->
+  <g fill="#C0CAF5" opacity="0.22">
+    <rect x="350" y="354" width="42" height="10" rx="5"/>
+    <rect x="350" y="380" width="78" height="10" rx="5"/>
+    <rect x="350" y="626" width="42" height="10" rx="5"/>
+    <rect x="350" y="652" width="78" height="10" rx="5"/>
+  </g>
+
+  <!-- Status lights echo the app's threshold colors. -->
+  <circle cx="332" cy="376" r="12" fill="#9ECE6A"/>
+  <circle cx="332" cy="512" r="12" fill="#E0AF68"/>
+  <circle cx="332" cy="648" r="12" fill="#F7768E"/>
+
+  <!-- Utilization pulse, the distinctive monitoring signal. -->
+  <path d="M362 514H427L458 482L496 546L548 469L586 526L616 500H666" fill="none" stroke="#0A0B10" stroke-opacity="0.9" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M362 514H427L458 482L496 546L548 469L586 526L616 500H666" fill="none" stroke="url(#pulse)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="682" cy="500" r="22" fill="#161824"/>
+  <circle cx="682" cy="500" r="13" fill="#9ECE6A"/>
+
+  <!-- Feet ground the rack at small sizes. -->
+  <rect x="330" y="756" width="98" height="24" rx="12" fill="#11131D"/>
+  <rect x="596" y="756" width="98" height="24" rx="12" fill="#11131D"/>
+  </g>
+</svg>
